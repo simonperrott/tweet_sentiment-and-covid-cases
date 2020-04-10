@@ -1,0 +1,6 @@
+.DS_Store
+/.idea/
+/.ipynb_checkpoints/
+/venv/
+/data/twitter/
+/data/covid_data.csv
