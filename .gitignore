@@ -4,3 +4,5 @@
 /venv/
 /data/twitter/
 /data/covid_data.csv
+/notebooks/.ipynb_checkpoints/
+/notebooks/dask-worker-space/

@@ -27,5 +27,10 @@ class TestHelpers(unittest.TestCase):
         output = text_helpers.clean_text(self.text)
         self.assertFalse('http' in output, 'links still present')
 
+    def test_spell_correction(self):
+        output = text_helpers.clean_text('he shoulda laod it')
+        self.assertFalse('shoulda' in output, 'didn\'t correct spelling of "shoulda"')
+        self.assertFalse('laod' in output, 'didn\'t correct spelling of "laod"')
+
 if __name__ == '__main__':
     unittest.main()

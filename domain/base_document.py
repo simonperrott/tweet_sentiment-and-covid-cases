@@ -52,19 +52,3 @@ class DocumentManager(ABC):
                     documents.append(self.create_document(row))
             return documents
         return []
-
-'''    def load_model(self):
-        if not os.path.isfile(self.file_name):
-            return None
-        else:
-            pickle_in = open(self.file_name, "rb")
-            try:
-                return pickle.load(pickle_in)
-            except EOFError:
-                return None
-
-    def save_model(self, obj):
-        pickle_in = open(self.file_name, "wb")
-        pickle.dump(obj, pickle_in)
-        pickle_in.close()
-'''
