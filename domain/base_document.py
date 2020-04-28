@@ -5,7 +5,7 @@ import os
 import pickle
 
 
-Document = namedtuple('Document', ['id', 'author', 'date', 'text', 'label'])
+Document = namedtuple('Document', ['tweet_id', 'author', 'date', 'text', 'label'])
 
 
 class DocumentManager(ABC):

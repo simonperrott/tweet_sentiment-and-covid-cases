@@ -6,3 +6,6 @@
 /data/covid_data.csv
 /notebooks/.ipynb_checkpoints/
 /notebooks/dask-worker-space/
+/domain/models/
+/domain/twitter_corpus.pickle
+/data/covid/

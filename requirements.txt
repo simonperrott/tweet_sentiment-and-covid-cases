@@ -1,3 +1,5 @@
+matplotlib
+wordcloud
 numpy==1.18.1
 emoji==0.5.4
 nltk==3.4.5

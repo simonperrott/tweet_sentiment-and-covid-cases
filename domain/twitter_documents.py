@@ -1,4 +1,5 @@
 from abc import ABC
+from collections import namedtuple
 
 from domain.base_document import DocumentManager, Document
 from numpy import array
@@ -6,6 +7,9 @@ import twitter
 from datetime import datetime, timezone
 import dateutil.parser
 import dateutil.tz
+
+
+TrainingDocument = namedtuple('TrainingDocument', ['tweet_id', 'text', 'sentiment'])
 
 
 class TweetManager(DocumentManager):
@@ -65,7 +69,7 @@ class TweetManager(DocumentManager):
                 author_tweets = list(filter(lambda t: t.author == author, existing_tweets))
                 if len(author_tweets) > 0:
                     latest_tweet = max(author_tweets, key=lambda x: x.date)
-                    since_id = latest_tweet.id
+                    since_id = latest_tweet.tweet_id
             new_tweets.extend(self.api_get_user_timeline(author, count=1000, since_id=since_id))
         return new_tweets
 
@@ -73,8 +77,7 @@ class TweetManager(DocumentManager):
 class TrainingDataManager(DocumentManager):
 
     def __init__(self):
-        super().__init__(directory='twitter', filename='training.csv', encoding='latin-1')
+        super().__init__(directory='twitter', filename='labelled_training_data.csv', encoding='latin-1', headers=['tweet_id', 'text', 'sentiment'])
 
     def create_document(self, file_row):
-        # mapping ['Target', 'Id', 'Date', 'flag', 'Author', 'Text'] to namedtuple('Document', ['id', 'author', 'date', 'text', 'label'])
-        return Document(file_row[1], file_row[4], file_row[2], file_row[5], file_row[0])
+        return TrainingDocument(file_row[0], file_row[1], file_row[2])
