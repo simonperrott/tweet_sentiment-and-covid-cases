@@ -9,3 +9,4 @@
 /domain/models/
 /domain/twitter_corpus.pickle
 /data/covid/
+/domain/__pycache__/
