@@ -26,8 +26,8 @@ class SentimentAnalyser:
 
     def __train(self):
         document_matrix = self.corpus_manager.corpus.document_matrix
-        X_train, X_test, y_train, y_test = train_test_split(document_matrix[:, :-1], document_matrix[:, -1], test_size=0.2, random_state=7)
-        fold = KFold(n_splits=10, random_state=7)
+        X_train, X_test, y_train, y_test = train_test_split(document_matrix[:, :-1], document_matrix[:, -1], test_size=0.2, random_state=7, shuffle=True)
+        fold = KFold(n_splits=7)
         cv_results = cross_val_score(estimator=self.model, X=X_train, y=y_train, cv=fold, scoring='accuracy', error_score='raise')
         print('{}: {} ({})'.format(self.model, cv_results.mean(), cv_results.std()))
         self.model.fit(X_train, y_train)
@@ -38,12 +38,16 @@ class SentimentAnalyser:
     def classify(self, documents):
         vectors = [self.corpus_manager.vectorise(self.corpus_manager.tokenise(doc.text)) for doc in documents]
         predictions = self.model.predict(vectors)
-        return predictions
+        for i in range(len(documents)):
+            prediction = predictions[i]
+            documents[i].label = prediction
+        self.analyse_predictions(documents)
+        return documents
 
     def __plot_confusion_matrix(self, X_test, y_test):
         disp = plot_confusion_matrix(self.model, X_test, y_test,
                                      cmap=plt.cm.Blues,
-                                     normalize=True)
+                                     normalize='true')
         disp.ax_.set_title("Normalized confusion matrix")
         plt.show()
 
@@ -68,3 +72,10 @@ class SentimentAnalyser:
 
     def plot_model_comparison(self):
         pass
+
+    def analyse_predictions(self, documents_classified):
+        for sentiment in [('-1', 'negative'), ('0', 'neutral'), ('1', 'positive')]:
+            list_of_doc_sentences = [doc.text for doc in documents_classified if doc[0].label == sentiment[0]]
+            print('{0} tweets classified as {1}'.format(len(list_of_doc_sentences), sentiment[1]))
+            words = ' '.join(list_of_doc_sentences)
+            self.__plot_word_clouds(words, sentiment[1])

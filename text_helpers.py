@@ -31,24 +31,22 @@ def correct_misspelling(words):
 
 
 def clean_text(text):
-    # remove html
-    text = BeautifulSoup(text, 'html.parser').text
 
-    # remove hashtag character
-    text = text.replace('#', '')
-
-    # remove words with inks & mentions
+    # remove words with links, hashtags & mentions
     words = text.split()
-    substrings_non_grata = ['http', '@']
+    substrings_non_grata = ['http', '@', '#']
     clean_words = [w for w in words if not any(ss in w for ss in substrings_non_grata)]
-
-    # correct spelling
-    # clean_words = correct_misspelling(clean_words)
 
     # rewrite emoticons
     clean_words = __transfrom_emoticons_1(clean_words)
 
-    # rewrite emojis
-    text = __transfrom_emojis(' '.join(clean_words))
+    # remove html
+    clean_text = BeautifulSoup(' '.join(clean_words), 'html.parser').text
 
-    return text.lower()
+    # rewrite emojis
+    clean_text = __transfrom_emojis(clean_text)
+
+    # correct spelling
+    # clean_words = correct_misspelling(clean_words)
+
+    return clean_text.lower()

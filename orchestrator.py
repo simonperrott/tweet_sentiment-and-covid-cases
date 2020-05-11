@@ -1,21 +1,33 @@
 from sentimenter import SentimentAnalyser
-from domain.twitter_documents import TweetManager, TrainingDataManager
+from domain.twitter_documents import AirlineTweetsManager, SemEvalTweetsManager, LeaderTweetsManager, TwitterApiManager
 import random
 import numpy as np
 from nltk.stem import SnowballStemmer
 from sklearn.linear_model import LogisticRegression
 from domain.corpus import CorpusManager
+import pandas as pd
 
 
 def start():
-    # set_seed(10)
+    set_seed(10)
     # update_leader_tweets()
+
+    # Config how we build our corpus
     stop_words = set(w.rstrip() for w in open('data/stopwords.txt'))
-    training_data = load_training_data()
-    corpus_mgr = CorpusManager(training_data, SnowballStemmer(language='english'), stop_words)
-    sentimenter = SentimentAnalyser(corpus_mgr, LogisticRegression())
-    tweets_to_classify = random.sample(load_leader_tweets(False), 1000)
+    min_word_length = 2
+
+    training_data: pd.DataFrame = load_training_data()
+    corpus_mgr = CorpusManager(training_data, SnowballStemmer(language='english'), stop_words, min_word_length)
+
+    sentimenter = SentimentAnalyser(corpus_mgr, LogisticRegression(solver='liblinear'))
+    tweets = load_leader_tweets(False)
+    tweets_to_classify = random.sample(tweets, 1000)
     results = sentimenter.classify(tweets_to_classify)
+    # save classified sentiment for review
+    for classified_tweet in results:
+        tweet = next(filter(lambda t: t.tweet_id == classified_tweet.tweet_id,  tweets))
+        tweet.label = classified_tweet.label
+    LeaderTweetsManager().save_documents('w', results)
 
 
 def set_seed(args):
@@ -24,19 +36,38 @@ def set_seed(args):
 
 
 def load_leader_tweets(update_with_latest=False):
-    mgr = TweetManager()
-    authors = ["@BorisJohnson", "@LeoVaradkar", "@realDonaldTrump"]
+    api_mgr = TwitterApiManager()
+    leader_tweets_mgr = LeaderTweetsManager()
+    leader_tweets = leader_tweets_mgr.load_documents()
     if update_with_latest:
-        new_tweets = mgr.get_more_tweets(authors)
+        new_tweets = api_mgr.get_more_tweets(leader_tweets)
         if len(new_tweets) > 0:
-            mgr.save_documents('a', new_tweets)
-    leader_tweets = mgr.load_documents()
+            leader_tweets_mgr.save_documents('a', new_tweets)
+            leader_tweets.extend(new_tweets)
     return leader_tweets
 
+
 def load_training_data():
-    mgr = TrainingDataManager()
-    training_tweets = mgr.load_documents()
-    return training_tweets
+    # airline_tweets = AirlineTweetsManager().load_documents()
+    semeval_tweets = SemEvalTweetsManager().load_documents()
+    labelled_leader_tweets = [tweet for tweet in LeaderTweetsManager().load_documents() if tweet.label]
+    training_tweets = []
+    # training_tweets.extend(airline_tweets)
+    training_tweets.extend(semeval_tweets)
+    training_tweets.extend(labelled_leader_tweets)
+
+    # Get even number of tweets for each sentiment
+    df = pd.DataFrame([t.to_dict() for t in training_tweets])
+    groups = df.groupby(df.label)
+    min_count = min(groups.size())
+    training_tweets_balanced = groups.apply(lambda x: x.sample(n=min_count))
+
+    print('Training data: Total={0}, Positive={1}, Neutral={2}, Negative={3}'.format(len(training_tweets_balanced)
+                                                                                     , len(training_tweets_balanced[training_tweets_balanced.label == 1])
+                                                                                     , len(training_tweets_balanced[training_tweets_balanced.label == 0])
+                                                                                     , len(training_tweets_balanced[training_tweets_balanced.label == -1])
+                                                                                     ))
+    return training_tweets_balanced
 
 
 start()

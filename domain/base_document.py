@@ -1,16 +1,12 @@
 from abc import ABC, abstractmethod
-from collections import namedtuple
 import csv
 import os
-import pickle
-
-
-Document = namedtuple('Document', ['tweet_id', 'author', 'date', 'text', 'label'])
 
 
 class DocumentManager(ABC):
 
-    def __init__(self, directory, filename, encoding, headers=None):
+    def __init__(self, directory, filename, encoding, separator=',', headers=None):
+        self.separator = separator
         self.directory = directory
         self.filename = filename
         self.headers = headers
@@ -40,11 +36,11 @@ class DocumentManager(ABC):
             except Exception as e:
                 print(e)
 
-    def load_documents(self, delimiter=','):
+    def load_documents(self):
         file = self.get_qualified_file_name(self.filename)
         if os.path.isfile(file):
             with open(file, encoding=self.encoding) as csv_file:
-                csv_reader = csv.reader(csv_file, delimiter=delimiter, quotechar="\"")
+                csv_reader = csv.reader(csv_file, delimiter=self.separator, quotechar="\"")
                 if self.headers is not None:
                     next(csv_reader)  # pass headers line
                 documents = []

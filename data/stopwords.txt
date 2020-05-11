@@ -146,7 +146,6 @@ him
 himself
 his
 how
-howevhowevhoif
 important
 in
 interest
@@ -204,8 +203,6 @@ much
 must
 my
 myself
-n
-nnnnnsary
 need
 needed
 needing
@@ -329,6 +326,7 @@ than
 that
 the
 their
+then
 them
 hen
 there
@@ -406,9 +404,15 @@ y
 year
 years
 yet
-yyyyyyyung
 younger
 youngest
+you
 your
 yours
-z
+monday
+tuesday
+wednesday
+thursday
+friday
+saturday
+sunday
