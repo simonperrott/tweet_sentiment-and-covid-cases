@@ -19,15 +19,10 @@ def start():
     training_data: pd.DataFrame = load_training_data()
     corpus_mgr = CorpusManager(training_data, SnowballStemmer(language='english'), stop_words, min_word_length)
 
-    sentimenter = SentimentAnalyser(corpus_mgr, LogisticRegression(solver='liblinear'))
+    sentimenter = SentimentAnalyser(corpus_mgr, LogisticRegression()) #solver='liblinear'))
     tweets = load_leader_tweets(False)
     tweets_to_classify = random.sample(tweets, 1000)
     results = sentimenter.classify(tweets_to_classify)
-    # save classified sentiment for review
-    for classified_tweet in results:
-        tweet = next(filter(lambda t: t.tweet_id == classified_tweet.tweet_id,  tweets))
-        tweet.label = classified_tweet.label
-    LeaderTweetsManager().save_documents('w', results)
 
 
 def set_seed(args):
@@ -48,11 +43,11 @@ def load_leader_tweets(update_with_latest=False):
 
 
 def load_training_data():
-    # airline_tweets = AirlineTweetsManager().load_documents()
+    airline_tweets = AirlineTweetsManager().load_documents()
     semeval_tweets = SemEvalTweetsManager().load_documents()
     labelled_leader_tweets = [tweet for tweet in LeaderTweetsManager().load_documents() if tweet.label]
     training_tweets = []
-    # training_tweets.extend(airline_tweets)
+    training_tweets.extend(airline_tweets)
     training_tweets.extend(semeval_tweets)
     training_tweets.extend(labelled_leader_tweets)
 

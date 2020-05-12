@@ -10,3 +10,5 @@
 /domain/twitter_corpus.pickle
 /data/covid/
 /domain/__pycache__/
+__pycache__/text_helpers.cpython-38.pyc
+data/__pycache__/emoticons.cpython-38.pyc

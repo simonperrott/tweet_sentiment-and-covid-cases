@@ -85,17 +85,17 @@ class CorpusManager:
             vector[-1] = doc.label
             document_matrix[i, :] = vector
             i += 1
-        corpus = Corpus(word_index_map=word_index_map, document_matrix=document_matrix, inverse_doc_freq=inverse_document_freq_log)
-        # self.__show_corpus_sentiment_wordclouds(documents_tokenized)
+        corpus = Corpus(word_index_map=word_index_map, document_matrix=document_matrix, inverse_doc_freq=dict_of_idf)
+        # self.show_sentiment_wordclouds(documents_tokenized)
         self.save_corpus(corpus)
         return corpus
 
-    def __show_corpus_sentiment_wordclouds(self, documents_tokenized):
-        for sentiment in [(-1, 'negative'), (0, 'neutral'), (1, 'positive')]:
+    def show_sentiment_wordclouds(self, documents_tokenized):
+        for sentiment in [(-1.0, 'negative'), (0.0, 'neutral'), (1.0, 'positive')]:
             list_of_docs = [' '.join(doc[1]) for doc in documents_tokenized if doc[0].label == sentiment[0]]
             all_tokens = ' '.join(list_of_docs)
             most_common_tokens = collections.Counter(all_tokens.split()).most_common(40)
-            self.__plot_word_clouds(most_common_tokens, sentiment[1])
+            self.plot_word_clouds(most_common_tokens, sentiment[1])
 
     def vectorise(self, tokens):
         vector = np.zeros(len(self.corpus.word_index_map))
@@ -112,7 +112,7 @@ class CorpusManager:
         out_file.close()
 
     @staticmethod
-    def __plot_word_clouds(words, sentiment):
+    def plot_word_clouds(words, sentiment):
         wordcloud = WordCloud(width=800, height=500, random_state=21, max_font_size=110).generate_from_frequencies(dict(words))
         plt.figure(figsize=(10, 7))
         plt.imshow(wordcloud, interpolation="bilinear")

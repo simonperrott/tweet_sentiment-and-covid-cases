@@ -1,7 +1,8 @@
+import collections
 import os
 import time
 
-from sklearn.model_selection import train_test_split, KFold, cross_val_score
+from sklearn.model_selection import train_test_split, KFold, cross_val_score, GridSearchCV
 from sklearn import metrics
 from sklearn.metrics import plot_confusion_matrix
 import matplotlib.pyplot as plt
@@ -27,21 +28,30 @@ class SentimentAnalyser:
     def __train(self):
         document_matrix = self.corpus_manager.corpus.document_matrix
         X_train, X_test, y_train, y_test = train_test_split(document_matrix[:, :-1], document_matrix[:, -1], test_size=0.2, random_state=7, shuffle=True)
-        fold = KFold(n_splits=7)
-        cv_results = cross_val_score(estimator=self.model, X=X_train, y=y_train, cv=fold, scoring='accuracy', error_score='raise')
-        print('{}: {} ({})'.format(self.model, cv_results.mean(), cv_results.std()))
+
+        # Tune Hyperparams
+        self.model = GridSearchCV(self.model, param_grid=[{'C': [0.001,0.01,0.1,1,10,100]}], cv=5)
         self.model.fit(X_train, y_train)
+        print(self.model.best_params_)
+        for param, score in zip(self.model.cv_results_['params'], self.model.cv_results_['mean_test_score']):
+            print(param, score)
+
+        # fold = KFold(n_splits=7)
+        # cv_results = cross_val_score(estimator=self.model, X=X_train, y=y_train, cv=fold, scoring='accuracy', error_score='raise')
+        # print('{}: {} ({})'.format(self.model, cv_results.mean(), cv_results.std()))
+
         print("Train accuracy:", self.model.score(X_train, y_train))
+        print("Test accuracy:", self.model.score(X_test, y_test))
         print('Baseline: Train accuracy = 0.7244292793890649 & Test accuracy = 0.6692657569850552')
         self.__plot_confusion_matrix(X_test, y_test)
 
     def classify(self, documents):
-        vectors = [self.corpus_manager.vectorise(self.corpus_manager.tokenise(doc.text)) for doc in documents]
+        all_doc_tokens = [self.corpus_manager.tokenise(doc.text) for doc in documents]
+        vectors = [self.corpus_manager.vectorise(doc_tokens) for doc_tokens in all_doc_tokens]
         predictions = self.model.predict(vectors)
         for i in range(len(documents)):
-            prediction = predictions[i]
-            documents[i].label = prediction
-        self.analyse_predictions(documents)
+            documents[i].label = predictions[i]
+        self.corpus_manager.show_sentiment_wordclouds(list(zip(documents, all_doc_tokens)))
         return documents
 
     def __plot_confusion_matrix(self, X_test, y_test):
@@ -72,10 +82,3 @@ class SentimentAnalyser:
 
     def plot_model_comparison(self):
         pass
-
-    def analyse_predictions(self, documents_classified):
-        for sentiment in [('-1', 'negative'), ('0', 'neutral'), ('1', 'positive')]:
-            list_of_doc_sentences = [doc.text for doc in documents_classified if doc[0].label == sentiment[0]]
-            print('{0} tweets classified as {1}'.format(len(list_of_doc_sentences), sentiment[1]))
-            words = ' '.join(list_of_doc_sentences)
-            self.__plot_word_clouds(words, sentiment[1])
