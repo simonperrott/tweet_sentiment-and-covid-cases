@@ -3,7 +3,6 @@ from domain.twitter_documents import AirlineTweetsManager, SemEvalTweetsManager,
 import random
 import numpy as np
 from nltk.stem import SnowballStemmer
-from sklearn.linear_model import LogisticRegression
 from domain.corpus import CorpusManager
 import pandas as pd
 
@@ -19,10 +18,16 @@ def start():
     training_data: pd.DataFrame = load_training_data()
     corpus_mgr = CorpusManager(training_data, SnowballStemmer(language='english'), stop_words, min_word_length)
 
-    sentimenter = SentimentAnalyser(corpus_mgr, LogisticRegression()) #solver='liblinear'))
+    sentimenter_analyser = SentimentAnalyser()
+    # sentimenter_analyser.train(corpus_mgr.corpus.document_matrix)
+
     tweets = load_leader_tweets(False)
     tweets_to_classify = random.sample(tweets, 1000)
-    results = sentimenter.classify(tweets_to_classify)
+    vectors, all_tweet_tokens = corpus_mgr.vectorise(tweets_to_classify)
+    predicted_labels = sentimenter_analyser.classify(vectors)
+    for i in range(len(tweets_to_classify)):
+        tweets_to_classify[i].label = predicted_labels[i]
+    corpus_mgr.show_sentiment_wordclouds(list(zip(tweets_to_classify, all_tweet_tokens)))
 
 
 def set_seed(args):

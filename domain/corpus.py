@@ -29,16 +29,7 @@ class CorpusManager:
         self.stopwords =  stopwords.union(CorpusManager.flight_stopwords).union(CorpusManager.tech_stopwords)
         self.corpus = self.load_corpus() or self.create_corpus(training_docs)
 
-    def load_corpus(self) -> Corpus:
-        if os.path.isfile(self.corpus_file):
-            in_file = open(self.corpus_file, "rb")
-            corpus = pickle.load(in_file)
-            in_file.close()
-            return corpus
-        else:
-            return None
-
-    def tokenise(self, text):
+    def __tokenise(self, text):
         text = text_helpers.clean_text(text)
 
         word_tokens = word_tokenize(text)
@@ -49,12 +40,12 @@ class CorpusManager:
 
         return word_tokens
 
-    def create_vocabulary(self, training_docs):
+    def __create_vocabulary(self, training_docs):
         word_index_map = {}
         map_current_index = 0
         all_documents_with_tokens = []
         for row in training_docs.itertuples():
-            tokens = self.tokenise(row.text)
+            tokens = self.__tokenise(row.text)
             if len(tokens) > 0:
                 all_documents_with_tokens.append((row, tokens))
                 for t in tokens:
@@ -64,8 +55,17 @@ class CorpusManager:
         print("length of corpus vocabulary:", len(word_index_map))
         return word_index_map, all_documents_with_tokens
 
+    def load_corpus(self) -> Corpus:
+        if os.path.isfile(self.corpus_file):
+            in_file = open(self.corpus_file, "rb")
+            corpus = pickle.load(in_file)
+            in_file.close()
+            return corpus
+        else:
+            return None
+
     def create_corpus(self, training_docs):
-        word_index_map, documents_tokenized = self.create_vocabulary(training_docs)
+        word_index_map, documents_tokenized = self.__create_vocabulary(training_docs)
         num_of_docs = len(documents_tokenized)
         document_matrix = np.zeros((num_of_docs, len(word_index_map) + 1))  # one document in each row with its label in the last column
         i = 0
@@ -90,29 +90,34 @@ class CorpusManager:
         self.save_corpus(corpus)
         return corpus
 
-    def show_sentiment_wordclouds(self, documents_tokenized):
-        for sentiment in [(-1.0, 'negative'), (0.0, 'neutral'), (1.0, 'positive')]:
-            list_of_docs = [' '.join(doc[1]) for doc in documents_tokenized if doc[0].label == sentiment[0]]
-            all_tokens = ' '.join(list_of_docs)
-            most_common_tokens = collections.Counter(all_tokens.split()).most_common(40)
-            self.plot_word_clouds(most_common_tokens, sentiment[1])
-
-    def vectorise(self, tokens):
-        vector = np.zeros(len(self.corpus.word_index_map))
-        for token in set(tokens):
-            if token in self.corpus.word_index_map and token in self.corpus.inverse_doc_freq:
-                term_factor = tokens.count(token)
-                inverse_doc_factor = self.corpus.inverse_doc_freq[token]
-                vector[self.corpus.word_index_map[token]] = term_factor * inverse_doc_factor
-        return vector
-
     def save_corpus(self, corpus):
         out_file = open(self.corpus_file, "wb")
         pickle.dump(corpus, out_file)
         out_file.close()
 
+    def show_sentiment_wordclouds(self, documents_tokenized):
+        for sentiment in [(-1.0, 'negative'), (0.0, 'neutral'), (1.0, 'positive')]:
+            list_of_docs = [' '.join(doc[1]) for doc in documents_tokenized if doc[0].label == sentiment[0]]
+            all_tokens = ' '.join(list_of_docs)
+            most_common_tokens = collections.Counter(all_tokens.split()).most_common(40)
+            self.__plot_word_clouds(most_common_tokens, sentiment[1])
+
+    def vectorise(self, documents):
+        all_doc_tokens = [self.__tokenise(doc.text) for doc in documents]
+        vectors = [self._vectorise_single_doc(doc_tokens) for doc_tokens in all_doc_tokens]
+        return vectors, all_doc_tokens
+
+    def _vectorise_single_doc(self, doc_tokens):
+        vector = np.zeros(len(self.corpus.word_index_map))
+        for token in set(doc_tokens):
+            if token in self.corpus.word_index_map and token in self.corpus.inverse_doc_freq:
+                term_factor = doc_tokens.count(token)
+                inverse_doc_factor = self.corpus.inverse_doc_freq[token]
+                vector[self.corpus.word_index_map[token]] = term_factor * inverse_doc_factor
+        return vector
+
     @staticmethod
-    def plot_word_clouds(words, sentiment):
+    def __plot_word_clouds(words, sentiment):
         wordcloud = WordCloud(width=800, height=500, random_state=21, max_font_size=110).generate_from_frequencies(dict(words))
         plt.figure(figsize=(10, 7))
         plt.imshow(wordcloud, interpolation="bilinear")
