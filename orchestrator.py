@@ -19,7 +19,7 @@ def start():
     corpus_mgr = CorpusManager(training_data, SnowballStemmer(language='english'), stop_words, min_word_length)
 
     sentimenter_analyser = SentimentAnalyser()
-    # sentimenter_analyser.train(corpus_mgr.corpus.document_matrix)
+    sentimenter_analyser.train(corpus_mgr.corpus.document_matrix)
 
     tweets = load_leader_tweets(False)
     tweets_to_classify = random.sample(tweets, 1000)

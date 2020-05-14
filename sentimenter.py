@@ -1,6 +1,8 @@
 import os
 import time
 import numpy as np
+import pandas as pd
+from matplotlib import pyplot as plt
 
 from sklearn.model_selection import train_test_split, KFold, cross_val_score, GridSearchCV, RandomizedSearchCV
 from sklearn.metrics import plot_confusion_matrix
@@ -10,7 +12,6 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 from sklearn.pipeline import Pipeline
 
-import matplotlib.pyplot as plt
 import pickle
 import glob
 
@@ -30,15 +31,15 @@ class SentimentAnalyser:
 
         search_space = [{'classifier': [LogisticRegression()],
                          'classifier__C': [0.0001, 0.001],
-                         'classifier__penalty': ['l1', 'l2']},
+                         'classifier__solver': ['liblinear', 'lbfgs']},
                         {'classifier': [RandomForestClassifier()],
                          'classifier__n_estimators': [10, 100, 1000],
-                         'classifier__max_features': ['sqrt']},
+                         'classifier__max_features': [3, 5, 10, 100]},
                         {'classifier': [MultinomialNB()],
                          'classifier__alpha': [1, 1e-1, 1e-2]}
                         ]
 
-        model = RandomizedSearchCV(pipeline, param_distributions=search_space, cv=5, n_jobs=-1)
+        model = RandomizedSearchCV(pipeline, search_space, cv=5, n_jobs=-1)
         # n_jobs parameter = -1, grid search will detect how many cores are installed and use them all
         model.fit(X_train, y_train)
         self.model = model
@@ -58,15 +59,15 @@ class SentimentAnalyser:
         print("Train accuracy:", model.score(X_train, y_train))
         print("Test accuracy:", model.score(X_test, y_test))
         print('Baseline: Train accuracy = 0.7244292793890649 & Test accuracy = 0.6692657569850552')
-        self.__plot_confusion_matrix(X_test, y_test, model)
+        self.__plot_confusion_matrix(X_test, y_test)
         self.__save_model(type(best_model).__name__)
 
     def classify(self, vectors):
         predictions = self.model.predict(vectors)
         return predictions
 
-    def __plot_confusion_matrix(self, X_test, y_test, model):
-        disp = plot_confusion_matrix(model, X_test, y_test,
+    def __plot_confusion_matrix(self, X_test, y_test):
+        disp = plot_confusion_matrix(self.model, X_test, y_test,
                                      cmap=plt.cm.Blues,
                                      normalize='true')
         disp.ax_.set_title("Normalized confusion matrix")
@@ -90,6 +91,3 @@ class SentimentAnalyser:
                 return model
             else:
                 return None
-
-    def plot_model_comparison(self):
-        pass
