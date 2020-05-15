@@ -1,3 +1,5 @@
+seaborn
+pandas
 matplotlib
 wordcloud
 numpy==1.18.1

@@ -1,33 +1,45 @@
-from sentimenter import SentimentAnalyser
-from domain.twitter_documents import AirlineTweetsManager, SemEvalTweetsManager, LeaderTweetsManager, TwitterApiManager
+from score_explorer import ScoreExplorer
+from sentimenter import CustomSentimentAnalyser, VaderSentimentAnalyser
+from domain.twitter_documents import AirlineTweetsManager, SemEvalTweetsManager, LeaderTweetsManager, TwitterApiManager, Tweet
 import random
 import numpy as np
-from nltk.stem import SnowballStemmer
-from domain.corpus import CorpusManager
 import pandas as pd
+from typing import List
 
 
 def start():
     set_seed(10)
-    # update_leader_tweets()
 
-    # Config how we build our corpus
-    stop_words = set(w.rstrip() for w in open('data/stopwords.txt'))
-    min_word_length = 2
+    training_data: List[Tweet] = load_training_data()
+    random.shuffle(training_data)
+    ultimate_test_set = training_data[:100]
+    training_set = training_data[100:]
 
-    training_data: pd.DataFrame = load_training_data()
-    corpus_mgr = CorpusManager(training_data, SnowballStemmer(language='english'), stop_words, min_word_length)
+    # nltk Vader is already trained so we'll use the ultimate test data to explore its performance
+    vader_sentiment_analyser = VaderSentimentAnalyser(0.3)
+    vader_predicted_labels = vader_sentiment_analyser.classify(ultimate_test_set)
+    scorer = ScoreExplorer('Vader Sentiment Classification', ultimate_test_set, vader_predicted_labels)
+    scorer.explore()
 
-    sentimenter_analyser = SentimentAnalyser()
-    sentimenter_analyser.train(corpus_mgr.corpus.document_matrix)
+    # my own custom sentiment analyser built from the ground up needs training
+    # not using the same ultimate test data in training so we can use the same test data to evaluate as we used for vader.
+    sentimenter_analyser = CustomSentimentAnalyser(training_set)
+    sentimenter_analyser.train()
+    custom_predicted_labels = sentimenter_analyser.classify(ultimate_test_set)
+    scorer = ScoreExplorer('Custom Sentiment Classification', ultimate_test_set, custom_predicted_labels)
+    scorer.explore()
 
+    # plot a comparison of sentiment analysers
+
+
+    # classify leader tweets
     tweets = load_leader_tweets(False)
     tweets_to_classify = random.sample(tweets, 1000)
-    vectors, all_tweet_tokens = corpus_mgr.vectorise(tweets_to_classify)
-    predicted_labels = sentimenter_analyser.classify(vectors)
+    predicted_labels = sentimenter_analyser.classify(tweets)
     for i in range(len(tweets_to_classify)):
         tweets_to_classify[i].label = predicted_labels[i]
-    corpus_mgr.show_sentiment_wordclouds(list(zip(tweets_to_classify, all_tweet_tokens)))
+
+    # explore correlations
 
 
 def set_seed(args):
@@ -67,7 +79,7 @@ def load_training_data():
                                                                                      , len(training_tweets_balanced[training_tweets_balanced.label == 0])
                                                                                      , len(training_tweets_balanced[training_tweets_balanced.label == -1])
                                                                                      ))
-    return training_tweets_balanced
+    return list(training_tweets_balanced.itertuples())
 
 
 start()

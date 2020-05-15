@@ -1,29 +1,36 @@
-import os
-import time
+import os, time, pickle, glob
+from typing import List
+
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
+from nltk import SnowballStemmer
 
 from sklearn.model_selection import train_test_split, KFold, cross_val_score, GridSearchCV, RandomizedSearchCV
 from sklearn.metrics import plot_confusion_matrix
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.svm import SVC
 from sklearn.pipeline import Pipeline
 
-import pickle
-import glob
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 from domain.corpus import CorpusManager
+from domain.twitter_documents import Tweet
+from score_explorer import ScoreExplorer
 
 
-class SentimentAnalyser:
+class CustomSentimentAnalyser:
 
-    def __init__(self):
+    def __init__(self, training_data: List[Tweet]):
         self.model = self._load_last_model()
+        # Config how we build our corpus for training
+        stop_words = set(w.rstrip() for w in open('data/stopwords.txt'))
+        min_word_length = 2
+        self.corpus_mgr = CorpusManager(training_data, SnowballStemmer(language='english'), stop_words, min_word_length)
 
-    def train(self, document_matrix):
+    def train(self):
+        document_matrix = self.corpus_mgr.corpus.document_matrix
         X_train, X_test, y_train, y_test = train_test_split(document_matrix[:, :-1], document_matrix[:, -1], test_size=0.3, random_state=7, shuffle=True)
 
         # Train and compare multipole models whilst tuning their hyperparameters using a pipeline
@@ -31,10 +38,10 @@ class SentimentAnalyser:
 
         search_space = [{'classifier': [LogisticRegression()],
                          'classifier__C': [0.0001, 0.001],
-                         'classifier__solver': ['liblinear', 'lbfgs']},
+                         'classifier__solver': ['liblinear']},
                         {'classifier': [RandomForestClassifier()],
                          'classifier__n_estimators': [10, 100, 1000],
-                         'classifier__max_features': [3, 5, 10, 100]},
+                         'classifier__max_features': [3, 10, 50]},
                         {'classifier': [MultinomialNB()],
                          'classifier__alpha': [1, 1e-1, 1e-2]}
                         ]
@@ -58,11 +65,11 @@ class SentimentAnalyser:
 
         print("Train accuracy:", model.score(X_train, y_train))
         print("Test accuracy:", model.score(X_test, y_test))
-        print('Baseline: Train accuracy = 0.7244292793890649 & Test accuracy = 0.6692657569850552')
         self.__plot_confusion_matrix(X_test, y_test)
         self.__save_model(type(best_model).__name__)
 
-    def classify(self, vectors):
+    def classify(self, tweets: List[Tweet]):
+        vectors = self.corpus_mgr.vectorise(tweets)
         predictions = self.model.predict(vectors)
         return predictions
 
@@ -91,3 +98,22 @@ class SentimentAnalyser:
                 return model
             else:
                 return None
+
+
+class VaderSentimentAnalyser:
+
+    def __init__(self, neutral_score_threshold):
+        self.model = SentimentIntensityAnalyzer()
+        self.neutral_score_threshold = neutral_score_threshold
+
+    def classify(self, tweets: List[Tweet]):
+        predictions = [self.__classify_compound_score(self.model.polarity_scores(text=t.text)['compound']) for t in tweets]
+        return predictions
+
+    def __classify_compound_score(self, score):
+        if score > self.neutral_score_threshold:
+            return 1
+        elif score < -1 * self.neutral_score_threshold:
+            return -1
+        else:
+            return 0

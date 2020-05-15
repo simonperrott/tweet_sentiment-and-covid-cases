@@ -105,7 +105,7 @@ class CorpusManager:
     def vectorise(self, documents):
         all_doc_tokens = [self.__tokenise(doc.text) for doc in documents]
         vectors = [self._vectorise_single_doc(doc_tokens) for doc_tokens in all_doc_tokens]
-        return vectors, all_doc_tokens
+        return vectors
 
     def _vectorise_single_doc(self, doc_tokens):
         vector = np.zeros(len(self.corpus.word_index_map))
