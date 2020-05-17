@@ -1,5 +1,6 @@
 from abc import ABC
 from collections import namedtuple
+from typing import List
 
 from domain.base_document import DocumentManager
 from numpy import array
@@ -82,9 +83,9 @@ class TwitterApiManager:
                     pass
         return tweets_fetched
 
-    def get_more_tweets(self, existing_tweets):
+    def get_more_tweets(self, existing_tweets: List[Tweet]):
         new_tweets = []
-        authors = set([author for author in existing_tweets.author])
+        authors = set([t.author for t in existing_tweets])
         for author in authors:
             since_id = None
             author_tweets = list(filter(lambda t: t.author == author, existing_tweets))

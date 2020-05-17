@@ -21,4 +21,4 @@ def prepare_df(df: pd.DataFrame):
     df_diff = df.diff(axis=0)
     df_diff['day'] = [dateutil.parser.parse(d, dayfirst=False) for d in df_diff.index]
     df_diff.fillna(0, inplace=True)
-    df_diff
+    return df_diff

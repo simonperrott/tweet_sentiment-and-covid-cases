@@ -31,6 +31,7 @@ class ScoreExplorer:
             print('Tweet: {0} correctly predicted as: {1}'.format(t[0].text, t[1]))
 
     def show_random_misclassified_examples(self):
+        print('Wrongly classified')
         misclassified = list(filter(lambda t: t[0].label != t[1], self.tweets_with_pred))
         for t in sample(misclassified, 10):
             print('Tweet: {0} predicted as: {1} instead of: {2}'.format(t[0].text, t[1], t[0].label))
