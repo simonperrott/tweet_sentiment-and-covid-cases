@@ -9,7 +9,8 @@ import pandas as pd
 from domain import covid_timeseries
 from domain.twitter_documents import AirlineTweetsManager, SemEvalTweetsManager, LeaderTweetsManager, TwitterApiManager, \
     Tweet
-from sentimenter import CustomSentimentAnalyser
+from score_explorer import ScoreExplorer
+from sentimenter import CustomSentimentAnalyser, VaderSentimentAnalyser
 import seaborn as sn
 import matplotlib.pyplot as plt
 
@@ -68,23 +69,19 @@ class Orchestrator:
         ultimate_test_set = training_data[:100]
         training_set = training_data[100:]
 
-        '''
         # nltk Vader is already trained so we'll use the ultimate test data to explore its performance
         vader_sentiment_analyser = VaderSentimentAnalyser(0.3)
         vader_predicted_labels = vader_sentiment_analyser.classify(ultimate_test_set)
         scorer = ScoreExplorer('Vader Sentiment Classification', ultimate_test_set, vader_predicted_labels)
         scorer.explore()
-        '''
 
         # my own custom sentiment analyser built from the ground up needs training
         # not using the same ultimate test data in training so we can use the same test data to evaluate as we used for vader.
         sentimenter_analyser = CustomSentimentAnalyser(training_set)
-        '''
         sentimenter_analyser.train()
         custom_predicted_labels = sentimenter_analyser.classify(ultimate_test_set)
         scorer = ScoreExplorer('Custom Sentiment Classification', ultimate_test_set, custom_predicted_labels)
         scorer.explore()
-        '''
 
         # classify leader tweets
         tweets = load_tweets_to_classify(True)

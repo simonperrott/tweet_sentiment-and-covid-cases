@@ -57,7 +57,7 @@ class ScoreExplorer:
         ax.set_ylim([0.0, 1.05])
         ax.set_xlabel('False Positive Rate')
         ax.set_ylabel('True Positive Rate')
-        ax.set_title('Receiver operating characteristic')
+        ax.set_title(self.name + ': Receiver operating characteristic')
         for i in range(len(sentiment_classes)):
             ax.plot(fpr[i], tpr[i], label='ROC curve (area = {0}) for Sentiment {1}'.format(roc_auc[i], sentiment_class_names[i]))
         ax.legend(loc="best")
