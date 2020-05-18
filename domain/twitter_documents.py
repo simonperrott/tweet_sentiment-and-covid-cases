@@ -50,6 +50,7 @@ class TwitterApiManager:
 
         # test authentication
         print(self.twitter_api.VerifyCredentials())
+        self.authors = ['@realDonaldTrump', '@LeoVaradkar', '@BorisJohnson']
 
     @staticmethod
     def reformat_date(date_string):
@@ -74,7 +75,7 @@ class TwitterApiManager:
                         response = self.twitter_api.GetUserTimeline(screen_name=twitter_user, trim_user=True, count=200)
 
                 [tweets_fetched.append(Tweet(x.id, x.text, None, twitter_user, TwitterApiManager.reformat_date(x.created_at)))
-                 for x in response if x.lang == 'en' and dateutil.parser.parse(x.created_at) > datetime(2019, 12, 1, 0, 0, 0, tzinfo=timezone.utc)]
+                 for x in response if x.lang == 'en' and dateutil.parser.parse(x.created_at) >= datetime(2020, 1, 22, 0, 0, 0, tzinfo=timezone.utc)]
 
                 if len(response) == 0:
                     break
@@ -85,21 +86,22 @@ class TwitterApiManager:
 
     def get_more_tweets(self, existing_tweets: List[Tweet]):
         new_tweets = []
-        authors = set([t.author for t in existing_tweets])
-        for author in authors:
+        for author in self.authors:
             since_id = None
             author_tweets = list(filter(lambda t: t.author == author, existing_tweets))
             if len(author_tweets) > 0:
                 latest_tweet = max(author_tweets, key=lambda x: x.date)
                 since_id = latest_tweet.tweet_id
-            new_tweets.extend(self.api_get_user_timeline(author, count=1000, since_id=since_id))
+            new_tweets.extend(self.api_get_user_timeline(author, count=5000, since_id=since_id))
         return new_tweets
 
 
 class LeaderTweetsManager(DocumentManager):
 
-    def __init__(self):
-        super().__init__(directory='twitter', filename='leader_tweets.csv', encoding='utf-8', headers=['tweet_id', 'author', 'date', 'text', 'label'])
+    def __init__(self, filename=None):
+        if not filename:
+            filename = 'leader_tweets.csv'
+        super().__init__(directory='twitter', filename=filename, encoding='utf-8', headers=['tweet_id', 'author', 'date', 'text', 'label'])
 
     def create_document(self, file_row):
         return Tweet(tweet_id=file_row[self.headers.index('tweet_id')],

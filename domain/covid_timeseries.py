@@ -19,6 +19,7 @@ def prepare_df(df: pd.DataFrame):
     df.set_index('Country', inplace=True)
     df = df.transpose()
     df_diff = df.diff(axis=0)
-    df_diff['day'] = [dateutil.parser.parse(d, dayfirst=False) for d in df_diff.index]
+    df_diff['day'] = [dateutil.parser.parse(d, dayfirst=False).strftime("%Y-%m-%d") for d in df_diff.index]
     df_diff.fillna(0, inplace=True)
+    df_diff.set_index('day', inplace=True)
     return df_diff
