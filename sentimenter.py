@@ -38,13 +38,14 @@ class CustomSentimentAnalyser:
 
         search_space = [{'classifier': [LogisticRegression()],
                          'classifier__C': [0.0001, 0.001],
-                         'classifier__solver': ['liblinear']},
-                        {'classifier': [RandomForestClassifier()],
-                         'classifier__n_estimators': [10, 100, 1000],
-                         'classifier__max_features': [3, 10, 50]},
-                        {'classifier': [MultinomialNB()],
-                         'classifier__alpha': [1, 1e-1, 1e-2]}
-                        ]
+                         'classifier__solver': ['liblinear']}]
+
+        # Add the dictionaries below if you want to include training other models and hyperparameters
+        '''{'classifier': [RandomForestClassifier()],
+         'classifier__n_estimators': [10, 100, 1000],
+         'classifier__max_features': [3, 10, 50]},
+        {'classifier': [MultinomialNB()],
+         'classifier__alpha': [1, 1e-1, 1e-2]}'''
 
         model = RandomizedSearchCV(pipeline, search_space, cv=5, n_jobs=-1)
         # n_jobs parameter = -1, grid search will detect how many cores are installed and use them all
@@ -87,7 +88,8 @@ class CustomSentimentAnalyser:
         pickle.dump(self.model, out_file)
         out_file.close()
 
-    def _load_last_model(self):
+    @staticmethod
+    def _load_last_model():
         list_of_model_files = glob.glob('domain/models/*')
         if len(list_of_model_files) > 0:
             latest_file = max(list_of_model_files, key=os.path.getctime)
