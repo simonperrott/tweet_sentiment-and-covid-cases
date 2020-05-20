@@ -8,7 +8,7 @@
 /notebooks/dask-worker-space/
 /domain/models/
 /domain/twitter_corpus.pickle
-/domain/twitter_api_config.ini
+/twitter_api_config.ini
 /data/covid/
 /domain/__pycache__/
 __pycache__/text_helpers.cpython-38.pyc
