@@ -2,9 +2,10 @@ from abc import ABC
 from collections import namedtuple
 from typing import List
 
+import twitter
+
 from domain.base_document import DocumentManager
 from numpy import array
-import twitter
 from datetime import datetime, timezone
 import dateutil.parser
 import dateutil.tz
@@ -98,10 +99,10 @@ class TwitterApiManager:
 
 class LeaderTweetsManager(DocumentManager):
 
-    def __init__(self, filename=None):
+    def __init__(self, headers, filename=None):
         if not filename:
             filename = 'leader_tweets.csv'
-        super().__init__(directory='twitter', filename=filename, encoding='utf-8', headers=['tweet_id', 'author', 'date', 'text', 'label'])
+        super().__init__(directory='twitter', filename=filename, encoding='utf-8', headers=headers)
 
     def create_document(self, file_row):
         return Tweet(tweet_id=file_row[self.headers.index('tweet_id')],

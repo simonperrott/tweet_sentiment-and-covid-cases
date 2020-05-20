@@ -26,13 +26,15 @@ class DocumentManager(ABC):
 
     def save_documents(self, mode, docs):
         file = self.get_qualified_file_name(self.filename)
-        with open(file, mode) as csv_file:
+        with open(file, mode, encoding='utf8', newline='') as csv_file:
             file_is_empty = os.stat(file).st_size == 0
             writer = csv.writer(csv_file, quotechar="\"", delimiter=',')
             try:
-                if file_is_empty and self.headers:
-                    writer.writerow(self.headers)
-                writer.writerows(docs)
+                if file_is_empty:
+                    headers = docs[0].keys()
+                    writer.writerow(headers)
+                fc = csv.DictWriter(csv_file, fieldnames=docs[0].keys())
+                fc.writerows(docs)
             except Exception as e:
                 print(e)
 

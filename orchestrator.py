@@ -93,7 +93,7 @@ class Orchestrator:
     def load_training_data():
         airline_tweets = AirlineTweetsManager().load_documents()
         semeval_tweets = SemEvalTweetsManager().load_documents()
-        labelled_leader_tweets = [tweet for tweet in LeaderTweetsManager('labelled_leader_tweets.csv').load_documents() if tweet.label]
+        labelled_leader_tweets = [tweet for tweet in LeaderTweetsManager(['tweet_id', 'author', 'date', 'text', 'label'], 'labelled_leader_tweets.csv').load_documents() if tweet.label]
         training_tweets = []
         training_tweets.extend(airline_tweets)
         training_tweets.extend(semeval_tweets)
@@ -115,7 +115,7 @@ class Orchestrator:
     @staticmethod
     def load_tweets_to_classify(update_with_latest=False):
         api_mgr = TwitterApiManager()
-        leader_tweets_mgr = LeaderTweetsManager()
+        leader_tweets_mgr = LeaderTweetsManager(['tweet_id', 'text', 'label', 'author', 'date'])
         leader_tweets: List[Tweet] = leader_tweets_mgr.load_documents()
         if update_with_latest:
             new_tweets: List[Tweet] = api_mgr.get_more_tweets(leader_tweets)

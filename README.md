@@ -78,6 +78,8 @@ Model performance was evaluated using:
 * printouts of the text from a random set of misclassified tweets.
 
 My custom sentiment analyser:
+
+![](.README_images/2a19e9f4.png)
 ![](.README_images/9ae4d96f.png)
 
  was found to be significantly more accurate than nltk vader's SentimentIntensityAnalyzer.
@@ -88,7 +90,7 @@ In both cases, Neutral tweets are the most misclassified (The confusion matrix f
 
 ###### Curation of leader tweet data:
 
-The 'twitter' api package was used to retrieve tweets, specifically, the GetUserTimeline method was used to retrieve the tweets from ['@realDonaldTrump', '@LeoVaradkar', '@BorisJohnson'].
+The 'python-twitter' api package was used to retrieve tweets, specifically, the GetUserTimeline method was used to retrieve the tweets from ['@realDonaldTrump', '@LeoVaradkar', '@BorisJohnson'].
 The 'since_id' and the 'max_id' fields were used to supplement the tweets stored locally as per Twitter's api instructions.
 Data was filtered to include only tweets on or after 22nd Jan 2020 in order to match the same timeframe as the covid timeseries data.
 You'll need to request your own Twitter API keys to gather the data.
@@ -104,7 +106,18 @@ where the index is the calendar day and there are columns for:
 * The number of new covid cases on that day.
 * The number of new covid deaths on that day.
 
+![](.README_images/df72eea2.png)
+
 ###### Results of Sentiment to Covid Correlations:
+
+For UK:
+![](.README_images/bdbbfa23.png)
+
+For US:
+![](.README_images/5a9b929e.png)
+
+For Ireland:
+![](.README_images/e4099944.png)
 
 
 ###### Possible Project Extensions:
