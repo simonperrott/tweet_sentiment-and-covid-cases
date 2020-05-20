@@ -15,46 +15,6 @@ import seaborn as sn
 import matplotlib.pyplot as plt
 
 
-def set_seed(args):
-    random.seed(args)
-    np.random.seed(args)
-
-
-def load_training_data():
-    airline_tweets = AirlineTweetsManager().load_documents()
-    semeval_tweets = SemEvalTweetsManager().load_documents()
-    labelled_leader_tweets = [tweet for tweet in LeaderTweetsManager('labelled_leader_tweets.csv').load_documents() if tweet.label]
-    training_tweets = []
-    training_tweets.extend(airline_tweets)
-    training_tweets.extend(semeval_tweets)
-    training_tweets.extend(labelled_leader_tweets)
-
-    # Get even number of tweets for each sentiment
-    df = pd.DataFrame([t.to_dict() for t in training_tweets])
-    groups = df.groupby(df.label)
-    min_count = min(groups.size())
-    training_tweets_balanced = groups.apply(lambda x: x.sample(n=min_count))
-
-    print('Training data: Total={0}, Positive={1}, Neutral={2}, Negative={3}'.format(len(training_tweets_balanced)
-                                                                                     , len(training_tweets_balanced[training_tweets_balanced.label == 1])
-                                                                                     , len(training_tweets_balanced[training_tweets_balanced.label == 0])
-                                                                                     , len(training_tweets_balanced[training_tweets_balanced.label == -1])
-                                                                                     ))
-    return list(training_tweets_balanced.itertuples())
-
-
-def load_tweets_to_classify(update_with_latest=False):
-    api_mgr = TwitterApiManager()
-    leader_tweets_mgr = LeaderTweetsManager()
-    leader_tweets: List[Tweet] = leader_tweets_mgr.load_documents()
-    if update_with_latest:
-        new_tweets: List[Tweet] = api_mgr.get_more_tweets(leader_tweets)
-        if len(new_tweets) > 0:
-            leader_tweets_mgr.save_documents('a', [t.to_dict() for t in new_tweets])
-            leader_tweets.extend(new_tweets)
-    return list(filter(lambda t: dateutil.parser.parse(t.date) > datetime.datetime(2020, 1, 22),  leader_tweets))
-
-
 class Orchestrator:
 
     def __init__(self):
@@ -62,9 +22,9 @@ class Orchestrator:
         self.covid_deaths = covid_timeseries.load_covid_deaths()
 
     def start(self):
-        set_seed(10)
+        self.set_seed(10)
 
-        training_data: List[Tweet] = load_training_data()
+        training_data: List[Tweet] = self.load_training_data()
         random.shuffle(training_data)
         ultimate_test_set = training_data[:100]
         training_set = training_data[100:]
@@ -84,7 +44,7 @@ class Orchestrator:
         scorer.explore()
 
         # classify leader tweets
-        tweets = load_tweets_to_classify(True)
+        tweets = self.load_tweets_to_classify(True)
         predicted_labels = sentimenter_analyser.classify(tweets)
         for idx, tweet in enumerate(tweets):
             tweet.label = predicted_labels[idx]
@@ -123,6 +83,46 @@ class Orchestrator:
             country_df.name = country
             country_dfs.append(country_df)
         return country_dfs
+
+    @staticmethod
+    def set_seed(args):
+        random.seed(args)
+        np.random.seed(args)
+
+    @staticmethod
+    def load_training_data():
+        airline_tweets = AirlineTweetsManager().load_documents()
+        semeval_tweets = SemEvalTweetsManager().load_documents()
+        labelled_leader_tweets = [tweet for tweet in LeaderTweetsManager('labelled_leader_tweets.csv').load_documents() if tweet.label]
+        training_tweets = []
+        training_tweets.extend(airline_tweets)
+        training_tweets.extend(semeval_tweets)
+        training_tweets.extend(labelled_leader_tweets)
+
+        # Get even number of tweets for each sentiment
+        df = pd.DataFrame([t.to_dict() for t in training_tweets])
+        groups = df.groupby(df.label)
+        min_count = min(groups.size())
+        training_tweets_balanced = groups.apply(lambda x: x.sample(n=min_count))
+
+        print('Training data: Total={0}, Positive={1}, Neutral={2}, Negative={3}'.format(len(training_tweets_balanced)
+                                                                                         , len(training_tweets_balanced[training_tweets_balanced.label == 1])
+                                                                                         , len(training_tweets_balanced[training_tweets_balanced.label == 0])
+                                                                                         , len(training_tweets_balanced[training_tweets_balanced.label == -1])
+                                                                                         ))
+        return list(training_tweets_balanced.itertuples())
+
+    @staticmethod
+    def load_tweets_to_classify(update_with_latest=False):
+        api_mgr = TwitterApiManager()
+        leader_tweets_mgr = LeaderTweetsManager()
+        leader_tweets: List[Tweet] = leader_tweets_mgr.load_documents()
+        if update_with_latest:
+            new_tweets: List[Tweet] = api_mgr.get_more_tweets(leader_tweets)
+            if len(new_tweets) > 0:
+                leader_tweets_mgr.save_documents('a', [t.to_dict() for t in new_tweets])
+                leader_tweets.extend(new_tweets)
+        return list(filter(lambda t: dateutil.parser.parse(t.date) > datetime.datetime(2020, 1, 22),  leader_tweets))
 
 
 Orchestrator().start()
