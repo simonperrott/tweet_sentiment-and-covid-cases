@@ -23,7 +23,7 @@ class Orchestrator:
 
     def start(self):
         self.set_seed(10)
-
+        tweets = self.load_tweets_to_classify(True)
         training_data: List[Tweet] = self.load_training_data()
         random.shuffle(training_data)
         ultimate_test_set = training_data[:100]
@@ -44,7 +44,7 @@ class Orchestrator:
         scorer.explore()
 
         # classify leader tweets
-        tweets = self.load_tweets_to_classify(True)
+
         predicted_labels = sentimenter_analyser.classify(tweets)
         for idx, tweet in enumerate(tweets):
             tweet.label = predicted_labels[idx]

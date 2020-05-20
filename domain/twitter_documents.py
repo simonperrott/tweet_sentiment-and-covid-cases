@@ -9,6 +9,7 @@ from numpy import array
 from datetime import datetime, timezone
 import dateutil.parser
 import dateutil.tz
+from configparser import ConfigParser
 
 
 class Tweet:
@@ -42,11 +43,14 @@ class Tweet:
 class TwitterApiManager:
 
     def __init__(self):
+
+        parser = ConfigParser()
+        parser.read('twitter_api_config.ini')
         # initialize api instance
-        self.twitter_api = twitter.Api(consumer_key='***REMOVED***',
-                                       consumer_secret='***REMOVED***',
-                                       access_token_key='***REMOVED***',
-                                       access_token_secret='***REMOVED***',
+        self.twitter_api = twitter.Api(consumer_key=parser['twitter']['consumer_key'],
+                                       consumer_secret=parser['twitter']['consumer_secret'],
+                                       access_token_key=parser['twitter']['access_token_key'],
+                                       access_token_secret=parser['twitter']['access_token_secret'],
                                        sleep_on_rate_limit=True)
 
         # test authentication
