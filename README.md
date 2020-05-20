@@ -30,6 +30,7 @@ The requirements.txt specifies all the external modules needed to install into y
 Each component is defined as a class and encapsulates any functionality appropriately.
 
 The Orchestrator has responsibility for creating and sequencing the components used.
+
 ![](.README_images/97e0fb2c.png)
 
 An abstract base class is used to share re-usable functionality concerning handling file operations. 
@@ -66,6 +67,7 @@ _LogisticRegression(C=0.001, class_weight=None, dual=False, fit_intercept=True,
                    warm_start=False)_
 
 The CustomSentimentAnalyser class encapsulates functionality for training.
+
 ![](.README_images/8203f5ac.png)
 
 ###### Comparison of my custom sentiment analyser:
@@ -109,6 +111,9 @@ where the index is the calendar day and there are columns for:
 ![](.README_images/df72eea2.png)
 
 ###### Results of Sentiment to Covid Correlations:
+
+The sentiment of Trump's tweets are strongly negatively correlated with the number of new cases on a day (twice as strongly as with the number of deaths).
+i.e. the more cases the more positive the sentiment in Trump's tweets!!
 
 For UK:
 ![](.README_images/bdbbfa23.png)
