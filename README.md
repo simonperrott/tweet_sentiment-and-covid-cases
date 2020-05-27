@@ -112,16 +112,13 @@ where the index is the calendar day and there are columns for:
 
 ###### Results of Sentiment to Covid Correlations:
 
-The sentiment of Trump's tweets are strongly negatively correlated with the number of new cases on a day (twice as strongly as with the number of deaths).
-i.e. the more cases the more positive the sentiment in Trump's tweets!!
+The sentiment of Trump's tweets are strongly positively correlated with the number of new cases on a day (twice as strongly as with the number of deaths).
+i.e. the more new cases in the US, the more positive the sentiment in Trump's tweets!
 
-For UK:
 ![](.README_images/bdbbfa23.png)
 
-For US:
 ![](.README_images/5a9b929e.png)
 
-For Ireland:
 ![](.README_images/e4099944.png)
 
 
