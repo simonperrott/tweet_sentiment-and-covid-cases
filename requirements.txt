@@ -2,7 +2,7 @@ seaborn
 pandas
 matplotlib
 wordcloud
-numpy==1.18.1
+numpy==1.22.0
 emoji==0.5.4
 nltk==3.4.5
 beautifulsoup4==4.9.0
